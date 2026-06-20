@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="a63354db-a9d7-41e0-b7f4-bd8d5e1dc1f5" />
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="069ef799-7c6f-4b56-bb24-dff73639168f" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://localhost:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<flow name="publishing-order-flow" doc:id="285ce08b-3ce4-4ac7-80dd-d645ea10664b" >
+		<file:listener doc:name="reading-file" doc:id="04a28c5b-9937-4880-a3fe-76f44adf8e7f" config-ref="File_Config" directory="C:\Users\SindhuraNuthi\OneDrive - mindX360 Technologies\Documents\scheduled-order-processor\src\main\resources\orders\inputOrders" moveToDirectory="C:\Users\SindhuraNuthi\OneDrive - mindX360 Technologies\Documents\scheduled-order-processor\src\main\resources\orders\processedOrders">
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES" />
+			</scheduling-strategy>
+			<file:matcher />
+		</file:listener>
+		<logger level="INFO" doc:name="file-detected" doc:id="1355d7de-c925-4184-b891-de0ee23f92b8" message='File detected #[attributes.fileName]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="11b6418d-b9aa-40da-9d6f-aa657969db52" name="publish-subflow" />
+		<error-handler ref="global-exception-handlerError_Handler" />
+	</flow>
+	<flow name="consuming-order-flow" doc:id="f08203c5-5a85-4256-ac12-de7f5bfbfabe" >
+		<jms:listener doc:name="On New Message" doc:id="93936bf2-1da1-4399-bdb5-b5d51dc42eb7" config-ref="JMS_Config" destination="ordersQueue" numberOfConsumers="1" ackMode="AUTO">
+		</jms:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="67947a63-7339-4fd1-be1f-7225a71e0aa3" message='#["inserting..."++ write(payload,"application/json")]'/>
+		<flow-ref doc:name="Flow Reference" doc:id="9d97bc77-79b3-4d38-9c0b-b5a2a08a7e92" name="insert-ordersSub_Flow"/>
+	</flow>
+</mule>

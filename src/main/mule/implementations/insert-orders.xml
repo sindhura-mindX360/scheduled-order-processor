@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="7646f768-2d71-4a43-8c93-1a52c86844c0" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="orderProcessing" />
+	</db:config>
+	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="3d5e8615-69c6-4baa-a937-49300b8910cb" >
+		<email:smtp-connection host="smtp.gmail.com" port="587" user="saisindhura111@gmail.com" password="qeqm rvkq cycm wtfh" >
+			<email:properties >
+				<email:property key="mail.smtp.starttls.required" value="true" />
+			</email:properties>
+		</email:smtp-connection>
+	</email:smtp-config>
+	<sub-flow name="insert-ordersSub_Flow" doc:id="c5407b23-a2fc-49ba-9947-e2858f367acf" >
+		<set-variable value="#[payload]" doc:name="orderPayload" doc:id="7d8e93b4-4c46-472a-9369-fab40f10137e" variableName="orderPayload"/>
+		<db:select doc:name="Select" doc:id="bec70219-a651-463a-95ad-c6b99063f266" config-ref="Database_Config">
+			<db:sql ><![CDATA[select * from Orders where Order_Id=:orderId]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	orderId:payload.Order_Id
+}]]]></db:input-parameters>
+		</db:select>
+		<choice doc:name="Choice" doc:id="80ebd0af-ec0c-4cb2-9dfc-e1505bf3c763" >
+			<when expression="#[!(isEmpty(payload))]">
+				<email:send doc:name="error-alert-email" doc:id="59fd5edf-0a4d-471d-a27d-1a656bff9638" config-ref="Email_SMTP" fromAddress="saisindhura111@gmail.com" subject='#["Duplicate Order Alert - " ++ vars.orderPayload.Order_Id]'>
+					<email:to-addresses >
+						<email:to-address value="sindhura.nuthi@mindx360.com" />
+					</email:to-addresses>
+					<email:body >
+						<email:content ><![CDATA[#["Duplicate Order Alert...
+
+A duplicate order has been detected.
+
+Order ID: " ++ vars.orderPayload.Order_Id ++ "
+Customer Name: " ++ vars.orderPayload.Customer_Name ++ "
+Order Amount: " ++ (vars.orderPayload.Order_Amount as String) ++ "
+Order TimeStamp: " ++ vars.orderPayload.Order_Timestamp ++ "
+
+The order was not processed because an order with the same Order ID already exists in the system."]]]></email:content>
+					</email:body>
+				</email:send>
+				<raise-error doc:name="APP:DUPLICATE_ORDER" doc:id="eeede34c-9d3f-449e-9ec4-689139e2cbeb" type="APP:DUPLICATE_ORDER" description="Duplicate order detected. Order_Id already exists."/>
+			</when>
+			<otherwise >
+				<db:insert doc:name="Insert" doc:id="b695566e-eb53-42ee-9615-7bbd2d4f3990" config-ref="Database_Config">
+			<db:sql><![CDATA[INSERT INTO ORDERS
+(
+    ORDER_ID,
+    CUSTOMER_NAME,
+    ORDER_AMOUNT,
+    ORDER_TIMESTAMP
+)
+VALUES
+(
+    :orderId,
+    :customerName,
+    :orderAmount,
+    :orderTimestamp
+)]]></db:sql>
+			<db:input-parameters><![CDATA[#[{
+    orderId: vars.orderPayload.Order_Id,
+    customerName: vars.orderPayload.Customer_Name,
+    orderAmount: vars.orderPayload.Order_Amount,
+    orderTimestamp:vars.orderPayload.Order_Timestamp
+}]]]></db:input-parameters>
+		</db:insert>
+				<logger level="INFO" doc:name="Logger" doc:id="6aada55e-f016-4f67-8818-c45c6388174d" message='#[write(payload,"application/json")]' />
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<sub-flow name="publish-subflow" doc:id="4a19bfa7-39f3-4ecc-8a2e-2ff69bf93312" >
+		<choice doc:name="Choice" doc:id="1b0c9b58-c690-4f8a-ba9b-d79220a6085c">
+			<when expression="#[isEmpty(payload)]">
+				<raise-error doc:name="APP:EMPTY_FILE" doc:id="baac37d2-7596-478a-af0a-f6bc4b098f4c" type="APP:EMPTY_FILE" description="The file is empty." />
+			</when>
+			<otherwise>
+				<logger level="INFO" doc:name="Logger" doc:id="e1be3d11-a515-448f-91c2-d0315cb44354" message="#[typeOf(payload.Order_Amount)]"/>
+				<validation:is-true doc:name="amount-validation" doc:id="17aa16a0-6ae9-4767-93ca-49bfeeb5e1b5" expression="#[payload every ((item) -&gt;(item.Order_Amount as String matches /^[1-9]\d*$/))]" message="Order_Amount must be a positive integer." />
+				<ee:transform doc:name="Transform Message" doc:id="ce08613f-cd84-46dc-954e-29246f60b3f4">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json 
+---
+payload orderBy ((item, index) -> -(item.Order_Amount)) orderBy ((item, index) -> item.Order_Timestamp)
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+				<foreach doc:name="For Each" doc:id="914129bb-645e-49f3-8db2-35e9818f373f">
+					<choice doc:name="Choice" doc:id="713d7684-9160-461b-96c2-b444094a2a86" >
+						<when expression="#[(isEmpty(payload.Order_Id)) or (isEmpty(payload.Customer_Name)) or (isEmpty(payload.Order_Amount)) or (isEmpty(payload.Timestamp))]">
+							<raise-error doc:name="APP:INVALID_INPUT" doc:id="13c5e0d5-ced6-4a83-98e7-16b80acc4bad" type="APP:INVALID_INPUT" description="Invalid records: Missing fields." />
+						</when>
+						<otherwise >
+							<jms:publish doc:name="Publish" doc:id="5e5591c4-ffbe-407d-809b-84cdb2c350f9" config-ref="JMS_Config" destination="ordersQueue" />
+							<logger level="INFO" doc:name="file-published-logger" doc:id="ea097d54-2cd0-4456-877d-4e773b7dee14" message='#["File published"  ++ write(attributes.fileName,"text/plain")]' />
+						</otherwise>
+					</choice>
+		</foreach>
+			</otherwise>
+		</choice>
+	</sub-flow>
+</mule>
