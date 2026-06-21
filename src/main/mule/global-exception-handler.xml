@@ -6,8 +6,11 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
 	<error-handler name="global-exception-handlerError_Handler" doc:id="d78e8a49-f4ee-4c41-9e7c-6c711ec4cfd7" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="aef40a2e-8144-492d-a36a-a0ba9afbcc7e" type="APP:EMPTY_FILE">
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="aef40a2e-8144-492d-a36a-a0ba9afbcc7e" type="VALIDATION:NULL">
 			<logger level="INFO" doc:name="Logger" doc:id="44fada1a-6a72-487c-b50e-fc080c62a5df" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]"/>
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="657e8b40-c118-41eb-b1f8-a4c23dc942d7" type="VALIDATION:INVALID_BOOLEAN" >
+			<logger level="INFO" doc:name="Logger" doc:id="159d476d-38a1-4530-bd9b-8fa05055a1f1" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]" />
 		</on-error-propagate>
 	</error-handler>
 </mule>
