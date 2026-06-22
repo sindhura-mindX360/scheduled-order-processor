@@ -1,0 +1,37 @@
+{
+  "correlationId": "f65a9000-6e08-11f1-811d-c0a810e49c66",
+  "timestamp": "2026-06-22T12:37:00.1964663+05:30",
+  "applicationName": "order-management-system",
+  "processType": "VALIDATION",
+  "status": "FAILED",
+  "details": {
+    "errorCode": "APP-VALIDATION-001",
+    "errorType": "APP:INVALID_RECORD",
+    "errorMessage": "Order records failed validation checks",
+    "rejectedRecords": {
+      "valid": false,
+      "errorMessage": "Order_Amount should be a Positive Integer"
+    }
+  }
+}{
+  "correlationId": "44baa640-6e09-11f1-ac34-c0a810e49c66",
+  "timestamp": "2026-06-22T12:39:17.097837+05:30",
+  "applicationName": "order-management-system",
+  "processType": "DUPLICATION_ORDER_ID",
+  "status": "FAILED",
+  "details": {
+    "errorType": "DUPLICATION_ORDER_ID",
+    "errorMessage": "Order records failed due to Duplicate order checks"
+  }
+}{
+  "correlationId": "687d9e20-6e09-11f1-ac34-c0a810e49c66",
+  "timestamp": "2026-06-22T12:40:11.2127552+05:30",
+  "applicationName": "order-management-system",
+  "status": "FAILED",
+  "details": {
+    "errorCode": "APP-500",
+    "errorType": "FILE:ILLEGAL_PATH",
+    "errorMessage": "Path 'C:\\Users\\SindhuraNuthi\\OneDrive - mindX360 Technologies\\Documents\\scheduled-order-processor\\src\\main\\resources\\orders\\inputOrders\\orders.csv' doesn't exist",
+    "cause": "Path 'C:\\Users\\SindhuraNuthi\\OneDrive - mindX360 Technologies\\Documents\\scheduled-order-processor\\src\\main\\resources\\orders\\inputOrders\\orders.csv' doesn't exist"
+  }
+}

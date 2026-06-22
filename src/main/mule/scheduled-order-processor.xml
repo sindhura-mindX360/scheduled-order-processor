@@ -20,10 +20,16 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
 			</scheduling-strategy>
 		</scheduler>
+		<logger level="INFO" doc:name="Scheduler-logger" doc:id="5b165ab8-1dbd-4b73-817c-71ea5f73de4a" message='#["Order Publisher Flow triggered by Scheduler - Initiating file processing"]'/>
 		<file:read doc:name="Read" doc:id="2ea7195a-0f7a-4a35-94c1-2c62ffb18eb9" path="${input.file.path}"/>
-		<validation:is-not-null doc:name="empty-file-validation" doc:id="7fd34170-2a23-4276-b664-624ec4cd2cb1" value="#[payload]" message='#["File is Empty."]'/>
-		<logger level="INFO" doc:name="file-detected" doc:id="1355d7de-c925-4184-b891-de0ee23f92b8" message="File detected #[attributes.fileName]" />
-		<flow-ref doc:name="Flow Reference" doc:id="11b6418d-b9aa-40da-9d6f-aa657969db52" name="publish-subflow" />
+		<logger level="INFO" doc:name="file-detected" doc:id="1355d7de-c925-4184-b891-de0ee23f92b8" message="Reading Orders File #[attributes.fileName]" />
+		<flow-ref doc:name="publish-subflow-FlowReference" doc:id="11b6418d-b9aa-40da-9d6f-aa657969db52" name="publish-subflow" />
+		<ee:transform doc:name="success-transform-message-log" doc:id="18389e85-ad4d-45b6-a9c1-edf84fc8d3d4" >
+			<ee:message >
+				<ee:set-payload resource="dwlFiles/publish-success-logging.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="api-logger-flowref" doc:id="9a85b374-57cc-404d-a0b0-5b03e2d27516" name="publish-api-logging-subflow"/>
 		<file:move doc:name="Move" doc:id="40114e42-54c1-493e-8c5a-ef498909fc9f" targetPath="${processed.folder.path}" sourcePath="${input.file.path}" renameTo="orders.csv" overwrite="true"/>
 		<error-handler ref="global-exception-handlerError_Handler" />
 	</flow>
@@ -33,7 +39,16 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 				<jms:queue-consumer />
 			</jms:consumer-type>
 		</jms:listener>
-		<logger level="INFO" doc:name="Logger" doc:id="67947a63-7339-4fd1-be1f-7225a71e0aa3" message='#["inserting..."++ write(payload,"application/json")]'/>
-		<flow-ref doc:name="Flow Reference" doc:id="9d97bc77-79b3-4d38-9c0b-b5a2a08a7e92" name="insert-ordersSub_Flow"/>
+		<logger level="DEBUG" doc:name="consumerFlow-Triggered-logger" doc:id="f943dd02-bd49-43c3-8e1f-69ec3ac38867" message='#["Consumer Flow triggered - Message received from JMS Queue"]'/>
+		<logger level="INFO" doc:name="inserting-fields-Logger" doc:id="67947a63-7339-4fd1-be1f-7225a71e0aa3" message='#["inserting..."++ write(payload,"application/json")]'/>
+		<flow-ref doc:name="insert-ordersSub_Flow-FlowReference" doc:id="9d97bc77-79b3-4d38-9c0b-b5a2a08a7e92" name="insert-ordersSub_Flow"/>
+		<logger level="INFO" doc:name="consumer-flow-success-Logger" doc:id="8ec922d2-3b80-4c71-859f-0696c963d91b" message='#["Consumer Flow completed for JMS message processing"]'/>
+		<ee:transform doc:name="success-transform-message-log" doc:id="467e6918-6fd4-4197-8f98-ee4e4f93aa31" >
+			<ee:message >
+				<ee:set-payload resource="dwlFiles/consumer-success-logging.dwl" />
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="api-logger-flowref" doc:id="dc97801f-633d-4566-ae91-a6a1db1bc84e" name="cnsumer-api-logging-subflow"/>
+		<error-handler ref="global-exception-handlerError_Handler" />
 	</flow>
 </mule>

@@ -1,0 +1,4 @@
+%dw 2.0
+
+type auto_b5d0c979_a61a_4634_893a_6af921c217b0_Output_Variables_orderPayload = Any
+

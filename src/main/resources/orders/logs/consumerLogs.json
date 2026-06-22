@@ -1,0 +1,79 @@
+{
+  "correlationId": "27bd2320-6e03-11f1-950a-c0a810e49c66",
+  "timestamp": "2026-06-22T11:55:26.4191655+05:30",
+  "applicationName": "order-management-system",
+  "component": "jms-consume",
+  "status": "SUCCESS",
+  "details": {
+    "event": "CONSUME AND INSERT",
+    "fileName": "Orders.csv",
+    "filePath": "C:\\Users\\SindhuraNuthi\\OneDrive - mindX360 Technologies\\Documents\\scheduled-order-processor\\src\\main\\resources\\orders\\inputOrders\\orders.csv",
+    "totalRecordsRead": 2,
+    "totalRecordsProcessed": 2,
+    "records": {
+      "generatedKeys": {
+        
+      },
+      "affectedRows": 1
+    },
+    "destinationQueue": "orderQueue",
+    "message": "CSV file processed successfully and all order messages were consumed from JMS queue in priority order."
+  }
+}{
+  "correlationId": "830d9a20-6e03-11f1-88bf-c0a810e49c66",
+  "timestamp": "2026-06-22T11:57:59.4093208+05:30",
+  "applicationName": "order-management-system",
+  "component": "jms-consume",
+  "status": "SUCCESS",
+  "details": {
+    "event": "CONSUME AND INSERT",
+    "fileName": "Orders.csv",
+    "filePath": "C:\\Users\\SindhuraNuthi\\OneDrive - mindX360 Technologies\\Documents\\scheduled-order-processor\\src\\main\\resources\\orders\\inputOrders\\orders.csv",
+    "totalRecordsRead": 2,
+    "totalRecordsProcessed": 2,
+    "records": {
+      "Order_Id": "ORD-01088",
+      "Customer_Name": "AAA",
+      "Order_Amount": "24000",
+      "Order_Timestamp": "2025-06-01T20:00:04"
+    },
+    "destinationQueue": "orderQueue",
+    "message": "CSV file processed successfully and all order messages were consumed from JMS queue in priority order."
+  }
+}{
+  "correlationId": "114f24c0-6e04-11f1-b069-c0a810e49c66",
+  "timestamp": "2026-06-22T12:01:58.082413+05:30",
+  "applicationName": "order-management-system",
+  "component": "jms-consume",
+  "status": "SUCCESS",
+  "details": {
+    "event": "CONSUME AND INSERT",
+    "fileName": "Orders.csv",
+    "destinationQueue": "orderQueue",
+    "message": "CSV file processed successfully and all order messages were consumed from JMS queue in priority order."
+  }
+}{
+  "correlationId": "d5143840-6e05-11f1-aa8e-c0a810e49c66",
+  "timestamp": "2026-06-22T12:14:56.7586073+05:30",
+  "applicationName": "order-management-system",
+  "component": "jms-consume",
+  "status": "SUCCESS",
+  "details": {
+    "event": "CONSUME AND INSERT",
+    "fileName": "Orders.csv",
+    "destinationQueue": "orderQueue",
+    "message": "CSV file processed successfully and all order messages were consumed from JMS queue in priority order."
+  }
+}{
+  "correlationId": "f65a9000-6e08-11f1-811d-c0a810e49c66",
+  "timestamp": "2026-06-22T12:37:00.5408093+05:30",
+  "applicationName": "order-management-system",
+  "component": "jms-consume",
+  "status": "SUCCESS",
+  "details": {
+    "event": "CONSUME AND INSERT",
+    "fileName": "Orders.csv",
+    "destinationQueue": "orderQueue",
+    "message": "CSV file processed successfully and all order messages were consumed from JMS queue in priority order."
+  }
+}

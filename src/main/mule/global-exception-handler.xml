@@ -6,11 +6,36 @@
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
 	<error-handler name="global-exception-handlerError_Handler" doc:id="d78e8a49-f4ee-4c41-9e7c-6c711ec4cfd7" >
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="aef40a2e-8144-492d-a36a-a0ba9afbcc7e" type="VALIDATION:NULL">
-			<logger level="INFO" doc:name="Logger" doc:id="44fada1a-6a72-487c-b50e-fc080c62a5df" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]"/>
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="8bec7ed6-e76e-4b80-bea5-7b0538e6796e" type="APP:DUPLICATE_ORDER_ID">
+			<logger level="INFO" doc:name="duplicate-order-payload-logger" doc:id="57f4c7a3-224a-4552-a35d-9aaef2183f4b" message='#[write(vars,"application/json")]'/>
+			<ee:transform doc:name="email-body-transform-message" doc:id="a6099938-38f5-44fc-9bea-d66595f658b6" >
+				<ee:message >
+					<ee:set-payload resource="dwlFiles/mail-body.dwl" />
+				</ee:message>
+			</ee:transform>
+			<email:send doc:name="error-alert-email" doc:id="65a9c86f-7440-4d3a-a128-d77dab6b77a3" config-ref="Email_SMTP" fromAddress="saisindhura111@gmail.com" subject='#["Duplicate Order Alert - " ++ vars.orderPayload.Order_Id]'>
+				<email:to-addresses>
+					<email:to-address value="echoesofsilence307@gmail.com" />
+				</email:to-addresses>
+				<email:body contentType="text/html" encoding="UTF-8">
+				</email:body>
+			</email:send>
+			<logger level="INFO" doc:name="error-message-logger" doc:id="5a2e64c7-6ed9-48d4-99d7-df5908caafa8" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]" />
+			<ee:transform doc:name="duplicate-failure-log-message" doc:id="4d828a77-051e-4f58-9387-ac1b0723460e" >
+				<ee:message >
+					<ee:set-payload resource="dwlFiles/duplicate-order-failure-logging.dwl" />
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="failure-logging-flowref" doc:id="e24b2715-ff56-4f33-b796-d3e97585dce7" name="failure-api-logging-sublow"/>
 		</on-error-propagate>
-		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="657e8b40-c118-41eb-b1f8-a4c23dc942d7" type="VALIDATION:INVALID_BOOLEAN" >
-			<logger level="INFO" doc:name="Logger" doc:id="159d476d-38a1-4530-bd9b-8fa05055a1f1" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]" />
+		<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="79284a6b-7297-4242-a94e-752c89c05629" type="ANY">
+			<logger level="INFO" doc:name="error-message-logger" doc:id="5135a0bd-c680-42cb-815e-d99dde1d771e" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]" />
+			<ee:transform doc:name="failure-log-message" doc:id="ac5c37b9-c4b1-485b-8b1e-4547005b08e3" >
+				<ee:message >
+					<ee:set-payload resource="dwlFiles/failure-logging.dwl" />
+				</ee:message>
+			</ee:transform>
+			<flow-ref doc:name="failure-api-logging-flowref" doc:id="f431fc07-2c2a-41e8-b355-2abf1f13d150" name="failure-api-logging-sublow"/>
 		</on-error-propagate>
 	</error-handler>
 </mule>

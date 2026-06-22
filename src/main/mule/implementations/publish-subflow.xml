@@ -7,22 +7,38 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
 http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
 http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
 	<sub-flow name="publish-subflow" doc:id="4a19bfa7-39f3-4ecc-8a2e-2ff69bf93312" >
-		<logger level="INFO" doc:name="Logger" doc:id="e1be3d11-a515-448f-91c2-d0315cb44354" message="#[typeOf(payload.Order_Amount)]" />
-		<validation:is-true doc:name="fields-validation" doc:id="5bbdedae-98af-4e8a-b999-58a3c0d22777" expression="#[!(payload[0].Order_Id == null)  and !(payload[0].Order_Amount== null)  and !(payload[0].Order_Timestamp == null)]" message='#["Mandatory Fields are Missing"]' />
-		<validation:is-true doc:name="order-amount-validation" doc:id="d5c88ff5-1ce8-41b7-8464-3e11cba1acee" expression="#[(payload[0].Order_Amount matches /[0-9]+/)  and ( (payload[0].Order_Amount as Number) &gt; 0)]" message='#["Order_Amount should be a Positive Integer."]'/>
-		<validation:is-true doc:name="timestamp-validation" doc:id="729fadc3-474e-4661-a28b-9c6a68c840f2" expression="#[payload[0].Order_Timestamp matches /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/]" message='#["Invalid TimeStamp Format"]'/>
-		<ee:transform doc:name="Transform Message" doc:id="ce08613f-cd84-46dc-954e-29246f60b3f4">
+		<logger level="INFO" doc:name="validation-Logger" doc:id="e1be3d11-a515-448f-91c2-d0315cb44354" message='#["Starting order validation: mandatory fields, format checks, and business rules"]' />
+		<set-variable value="#[payload]" doc:name="currentOrder" doc:id="916f26eb-dd84-4747-90f7-e1b5884d9f84" variableName="currentOrder"/>
+		<foreach doc:name="For Each" doc:id="4620c186-c679-4f4b-a039-ead0a985a997" >
+			<ee:transform doc:name="validations-dataWeave" doc:id="6c4c08b2-8c89-4bb8-a2ce-4f408245fbe6" >
+				<ee:message >
+					<ee:set-payload resource="dwlFiles/validations.dwl" />
+				</ee:message>
+			</ee:transform>
+			<try doc:name="Try" doc:id="8164d27e-3d25-4d5d-8406-c105acf6c475" >
+				<validation:is-true doc:name="validations-check" doc:id="c4f18868-0d1b-49c7-8b35-f0e8f05120c5" expression="#[payload.valid]" message="#[payload.errorMessage]" />
+				<error-handler >
+					<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="ac7ed9be-940c-4b59-9add-b171441a3a53" type="VALIDATION:INVALID_BOOLEAN">
+						<logger level="INFO" doc:name="validation-logger" doc:id="2a205945-1169-4e82-bd08-215df344409e" message="#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    correlationId: correlationId,&#10;    errorType: error.errorType.identifier,&#10;    errorDescription: error.description&#10;}]" />
+						<ee:transform doc:name="validation-logging-transform-message" doc:id="1296e52d-b206-4a58-b460-030e193bab26" >
+							<ee:message >
+								<ee:set-payload resource="dwlFiles/validation-failure-logging.dwl" />
+							</ee:message>
+						</ee:transform>
+						<flow-ref doc:name="failure-api-logging-flowref" doc:id="ee65a684-8aad-4c14-8015-374d9690abfd" name="failure-api-logging-sublow"/>
+					</on-error-continue>
+				</error-handler>
+			</try>
+		</foreach>
+		<set-payload value="#[vars.currentOrder]" doc:name="originalPayload" doc:id="452b4610-bf1c-4635-bbfe-f4de845623b7" />
+		<ee:transform doc:name="sortingOrders-dataWeave" doc:id="ce08613f-cd84-46dc-954e-29246f60b3f4">
 					<ee:message>
-						<ee:set-payload><![CDATA[%dw 2.0
-output application/json
----
-payload
-    orderBy ((item) -> item.Order_Timestamp)
-    orderBy ((item) -> -item.Order_Amount)]]></ee:set-payload>
+				<ee:set-payload resource="dwlFiles/sorting_orders.dwl" />
 					</ee:message>
 				</ee:transform>
+		<logger level="INFO" doc:name="parsing-logger" doc:id="1250b5ed-4949-43aa-af29-d7d867bcd738" message='CSV successfully parsed. Total records found: #[sizeOf(payload)]'/>
 		<foreach doc:name="For Each" doc:id="914129bb-645e-49f3-8db2-35e9818f373f">
-					<jms:publish doc:name="Publish" doc:id="5e5591c4-ffbe-407d-809b-84cdb2c350f9" config-ref="JMS_Config" destination="ordersQueue" />
+			<jms:publish doc:name="Publish" doc:id="5e5591c4-ffbe-407d-809b-84cdb2c350f9" config-ref="JMS_Config" destination="ordersQueue" />
 					<logger level="INFO" doc:name="file-published-logger" doc:id="ea097d54-2cd0-4456-877d-4e773b7dee14" message='#["publishing..."++ write(payload,"application/json")]' />
 		</foreach>
 	</sub-flow>

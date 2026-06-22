@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd">
+	<sub-flow name="publish-api-logging-subflow" doc:id="8b7323cf-a9d9-4eac-b641-a14104fbcc63" >
+		<logger level="INFO" doc:name="final-status-logger" doc:id="01f064b2-bdcd-40f9-adf2-94cd1bf9a264" message="#[payload]"/>
+		<file:write doc:name="write-publish-log" doc:id="558a98dc-b00c-4e0f-b17a-70ae28d9a139" path="C:\Users\SindhuraNuthi\OneDrive - mindX360 Technologies\Documents\scheduled-order-processor\src\main\resources\orders\logs\publisherLogs.json" mode="APPEND"/>
+	</sub-flow>
+	<sub-flow name="cnsumer-api-logging-subflow" doc:id="b5d0c979-a61a-4634-893a-6af921c217b0" >
+		<logger level="INFO" doc:name="final-status-logger" doc:id="f1d26b2d-ddcc-476e-9769-bb603efbbea4" message="#[payload]"/>
+		<file:write doc:name="write-consumer-log" doc:id="11526e7d-7bf5-4149-ac39-69ba052cc1c5" path="C:\Users\SindhuraNuthi\OneDrive - mindX360 Technologies\Documents\scheduled-order-processor\src\main\resources\orders\logs\consumerLogs.json" mode="APPEND"/>
+	</sub-flow>
+	<sub-flow name="failure-api-logging-sublow" doc:id="97959694-5b0d-4f42-b815-cff80388e8cb" >
+		<logger level="INFO" doc:name="failure-logger" doc:id="f4cead48-4c4e-481d-8315-c606f56ac3e8" message="#[payload]"/>
+		<file:write doc:name="write-failure-log" doc:id="b9891558-2668-4f03-8720-e14840eb93ac" path="C:\Users\SindhuraNuthi\OneDrive - mindX360 Technologies\Documents\scheduled-order-processor\src\main\resources\orders\logs\failureLogs.json" mode="APPEND"/>
+	</sub-flow>
+</mule>

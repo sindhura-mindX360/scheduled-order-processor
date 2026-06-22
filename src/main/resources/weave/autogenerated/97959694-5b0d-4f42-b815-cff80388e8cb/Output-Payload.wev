@@ -1,0 +1,15 @@
+%dw 2.0
+
+type auto_97959694_5b0d_4f42_b815_cff80388e8cb_Output_Payload = {|
+  correlationId: String, 
+  timestamp: DateTime, 
+  applicationName: String, 
+  status: String, 
+  details: {|
+    errorCode: String, 
+    errorType: String, 
+    errorMessage: String, 
+    cause: String
+  |}
+|}
+

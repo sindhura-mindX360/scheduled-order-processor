@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:email="http://www.mulesoft.org/schema/mule/email"
-	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking"
-	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
 http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
-http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
 	<db:config name="Database_Config" doc:name="Database Config" doc:id="7646f768-2d71-4a43-8c93-1a52c86844c0" >
-		<db:my-sql-connection host="localhost" port="3306" user="root" password="root" database="orderProcessing" />
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${secure::db.username}" password="${secure::db.password}" database="orderProcessing" />
 	</db:config>
 	<email:smtp-config name="Email_SMTP" doc:name="Email SMTP" doc:id="3d5e8615-69c6-4baa-a937-49300b8910cb" >
 		<email:smtp-connection host="smtp.gmail.com" port="587" user="saisindhura111@gmail.com" password="qeqm rvkq cycm wtfh" >
@@ -17,8 +18,10 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 			</email:properties>
 		</email:smtp-connection>
 	</email:smtp-config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="346016ce-fc25-402a-85cc-53694b1536db" file="secure.properties" key="Sindhuran@130805" />
 	<sub-flow name="insert-ordersSub_Flow" doc:id="c5407b23-a2fc-49ba-9947-e2858f367acf" >
 		<set-variable value="#[payload]" doc:name="orderPayload" doc:id="7d8e93b4-4c46-472a-9369-fab40f10137e" variableName="orderPayload"/>
+		<logger level="INFO" doc:name="validating-orderId-Logger" doc:id="91dbc5e4-1bd3-45be-b720-05fca7d8f0f7" message="Validating Order ID: #[payload.Order_Id]" />
 		<db:select doc:name="Select" doc:id="bec70219-a651-463a-95ad-c6b99063f266" config-ref="Database_Config">
 			<db:sql ><![CDATA[select * from Orders where Order_Id=:orderId]]></db:sql>
 			<db:input-parameters ><![CDATA[#[{
@@ -27,24 +30,8 @@ http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mu
 		</db:select>
 		<choice doc:name="Choice" doc:id="7a73b594-5b86-42de-9b7a-8b2fa7665c42" >
 			<when expression="#[!(isEmpty(payload))]">
-				<email:send doc:name="error-alert-email" doc:id="3e03e421-48f1-4676-aa0f-d7b27c3c6bfb" config-ref="Email_SMTP" fromAddress="saisindhura111@gmail.com" subject='#["Duplicate Order Alert - " ++ vars.orderPayload.Order_Id]' >
-					<email:to-addresses >
-						<email:to-address value="echoesofsilence307@gmail.com" />
-					</email:to-addresses>
-					<email:body >
-						<email:content ><![CDATA[#["Duplicate Order Alert...
-
-A duplicate order has been detected.
-
-Order ID: " ++ vars.orderPayload.Order_Id ++ "
-Customer Name: " ++ vars.orderPayload.Customer_Name ++ "
-Order Amount: " ++ (vars.orderPayload.Order_Amount as String) ++ "
-Order TimeStamp: " ++ vars.orderPayload.Order_Timestamp ++ "
-
-The order was not processed because an order with the same Order ID already exists in the system."]]]></email:content>
-					</email:body>
-				</email:send>
-				<logger level="INFO" doc:name="Logger" doc:id="59576608-a9f8-40ab-8d9e-1889245ca7e6" message="Email sent successfully"/>
+				<raise-error doc:name="APP:DUPLICATE_ORDER_ID" doc:id="a9e1343d-5de0-4ebe-bec9-613ccd7f6eeb" type="APP:DUPLICATE_ORDER_ID" description="Order Id already Exists. Duplicate Order Found."/>
+				<logger level="INFO" doc:name="alert-email-Logger" doc:id="2c4ed932-63f0-47aa-875d-be449d931959" message='#["Email sent successfully"]' />
 			</when>
 			<otherwise >
 				<db:insert doc:name="Insert" doc:id="b695566e-eb53-42ee-9615-7bbd2d4f3990" config-ref="Database_Config">
@@ -69,7 +56,7 @@ VALUES
     orderTimestamp:vars.orderPayload.Order_Timestamp
 }]]]></db:input-parameters>
 		</db:insert>
-				<logger level="INFO" doc:name="Logger" doc:id="6aada55e-f016-4f67-8818-c45c6388174d" message='#[write(payload,"application/json")]' />
+				<logger level="INFO" doc:name="DB-insert-Logger" doc:id="6aada55e-f016-4f67-8818-c45c6388174d" message='#[write(payload,"application/json")]' />
 			</otherwise>
 		</choice>
 	</sub-flow>

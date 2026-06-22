@@ -1,0 +1,5 @@
+%dw 2.0
+
+type auto_8b7323cf_a9d9_4eac_b641_a14104fbcc63_Output_Attributes = {|  |} {"typeAlias": "FileAttributes",
+"typeId": "org.mule.extension.file.common.api.FileAttributes"}
+
